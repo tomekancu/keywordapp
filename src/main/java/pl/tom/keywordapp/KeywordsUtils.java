@@ -20,10 +20,10 @@ public class KeywordsUtils {
     }
 
     public static List<Keyword> count(Document document, Set<String> keywords) {
-        String body = document.body().toString();
+        String body = document.body().text();
 
         return keywords.stream()
-                .map(key -> new Keyword(key, findWords(body, key).size()))
+                .map(key -> new Keyword(key, findWordsCaseSensitive(body, key).size()))
                 .collect(Collectors.toList());
     }
 
@@ -35,15 +35,13 @@ public class KeywordsUtils {
         return KeywordsUtils.count(document, keywords);
     }
 
-    public static List<Integer> findWords(String textString, String word) {
+    public static List<Integer> findWordsCaseSensitive(String textString, String word) {
         List<Integer> indexes = new ArrayList<>();
-        String lowerCaseTextString = textString.toLowerCase();
-        String lowerCaseWord = word.toLowerCase();
         int wordLength = 0;
 
         int index = 0;
         while (index != -1) {
-            index = lowerCaseTextString.indexOf(lowerCaseWord, index + wordLength);
+            index = textString.indexOf(word, index + wordLength);
             if (index != -1) {
                 indexes.add(index);
             }

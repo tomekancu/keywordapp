@@ -8,22 +8,24 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-
 <AnchorPane xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="pl.tom.keywordapp.Controller">
    <children>
       <VBox prefHeight="400.0" prefWidth="500.0" spacing="10.0" AnchorPane.bottomAnchor="5.0" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="5.0">
           <children>
               <HBox spacing="10.0">
                   <children>
-                      <TextField fx:id="urlField" HBox.hgrow="ALWAYS" promptText="URL"/>
-                      <Button mnemonicParsing="false" text="Check" onAction="#onCheck"/>
+                      <TextField fx:id="urlField" promptText="URL" HBox.hgrow="ALWAYS" />
+                      <Button fx:id="checkButton" mnemonicParsing="false" onAction="#onCheck" text="Check" />
                   </children>
               </HBox>
-              <TableView fx:id="tableView" prefHeight="200.0" VBox.vgrow="ALWAYS" >
+              <TableView fx:id="tableView" prefHeight="200.0" VBox.vgrow="ALWAYS">
                   <columns>
-                      <TableColumn fx:id="nameColumn" prefWidth="75.0" text="Keyword" />
-                      <TableColumn fx:id="countColumn" prefWidth="75.0" text="Count" />
+                      <TableColumn fx:id="nameColumn"  minWidth="20.0" prefWidth="345.0" text="Keyword" />
+                      <TableColumn fx:id="countColumn" minWidth="20.0" prefWidth="153.0" text="Count" />
                   </columns>
+               <columnResizePolicy>
+                  <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+               </columnResizePolicy>
               </TableView>
           </children>
       </VBox>

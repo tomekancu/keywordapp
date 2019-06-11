@@ -5,6 +5,8 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
+import java.util.Objects;
+
 public class Keyword {
 
     private StringProperty name;
@@ -39,5 +41,27 @@ public class Keyword {
     public IntegerProperty countProperty() {
         if (count == null) count = new SimpleIntegerProperty(this, "count");
         return count;
+    }
+
+    @Override
+    public String toString() {
+        return "Keyword{" +
+                "name=" + getName() +
+                ", count=" + getCount() +
+                '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Keyword keyword = (Keyword) o;
+        return Objects.equals(getName(), keyword.getName()) &&
+                Objects.equals(getCount(), keyword.getCount());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getName(), getCount());
     }
 }

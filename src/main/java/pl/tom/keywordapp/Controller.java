@@ -7,10 +7,7 @@ import javafx.collections.transformation.SortedList;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.Alert;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
@@ -34,6 +31,8 @@ public class Controller implements Initializable {
     public TableColumn<Keyword, String> nameColumn;
     @FXML
     public TableColumn<Keyword, Number> countColumn;
+    @FXML
+    public Button checkButton;
 
     private ObservableList<Keyword> keywordsData = FXCollections.observableArrayList();
 
@@ -52,16 +51,10 @@ public class Controller implements Initializable {
 
     @FXML
     public void onCheck() {
-        // test links
-        // https://www.metatags.org/meta_name_keywords
-        // https://adsecur.com/seo/kompendium/slowa-kluczowe
-        // https://www.w3schools.com/tags/tag_meta.asp
-
         String urlString = urlField.getText().trim();
         urlField.setText(urlString);
-        System.out.println(urlString);
 
-        DownloadPageTask task = new DownloadPageTask(urlString, keywordsData);
+        DownloadPageTask task = new DownloadPageTask(urlString, keywordsData, checkButton);
         new Thread(task).start();
     }
 
@@ -69,14 +62,17 @@ public class Controller implements Initializable {
 
         private final String urlString;
         private final ObservableList<Keyword> updateList;
+        private final Button checkButton;
 
-        public DownloadPageTask(String urlString, ObservableList<Keyword> updateList) {
+        public DownloadPageTask(String urlString, ObservableList<Keyword> updateList, Button checkButton) {
             this.urlString = urlString;
             this.updateList = updateList;
+            this.checkButton = checkButton;
         }
 
         @Override
         protected List<Keyword> call() throws URISyntaxException, IllegalArgumentException, IOException, InterruptedException, KeywordsUtils.NoKeywordsException {
+            checkButton.disableProperty().setValue(true);
             URI uri = new URI(urlString);
 
             HttpClient httpClient = HttpClient.newBuilder().build();
@@ -94,20 +90,20 @@ public class Controller implements Initializable {
         @Override
         protected void succeeded() {
             super.succeeded();
-            System.out.println("Done");
+            checkButton.disableProperty().setValue(false);
             updateList.setAll(getValue());
         }
 
         @Override
         protected void cancelled() {
             super.cancelled();
-            System.out.println("Canceled");
+            checkButton.disableProperty().setValue(false);
         }
 
         @Override
         protected void failed() {
             super.failed();
-            System.out.println("Falied" + getException());
+            checkButton.disableProperty().setValue(false);
             if (getException() instanceof URISyntaxException) {
                 Alert alert = new Alert(Alert.AlertType.ERROR);
                 alert.setTitle("Error");
