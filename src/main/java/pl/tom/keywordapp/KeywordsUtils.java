@@ -15,15 +15,24 @@ public class KeywordsUtils {
                 .map(e -> e.attr("content"))
                 .flatMap(e -> Arrays.stream(e.split(",")))
                 .map(String::trim)
+                .filter(key -> key.length() > 0)
                 .collect(Collectors.toSet());
     }
 
-    public static List<Keyword> countKeywords(Document document, Set<String> keywords) {
+    public static List<Keyword> count(Document document, Set<String> keywords) {
         String body = document.body().toString();
 
         return keywords.stream()
                 .map(key -> new Keyword(key, findWords(body, key).size()))
                 .collect(Collectors.toList());
+    }
+
+    public static List<Keyword> count(Document document) throws NoKeywordsException {
+        Set<String> keywords = KeywordsUtils.getKeywordsFromDocument(document);
+        if (keywords.size() == 0) {
+            throw new NoKeywordsException();
+        }
+        return KeywordsUtils.count(document, keywords);
     }
 
     public static List<Integer> findWords(String textString, String word) {
@@ -41,5 +50,9 @@ public class KeywordsUtils {
             wordLength = word.length();
         }
         return indexes;
+    }
+
+    public static class NoKeywordsException extends Exception {
+
     }
 }

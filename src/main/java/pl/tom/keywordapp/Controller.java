@@ -23,7 +23,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.List;
 import java.util.ResourceBundle;
-import java.util.Set;
 
 public class Controller implements Initializable {
 
@@ -77,7 +76,7 @@ public class Controller implements Initializable {
         }
 
         @Override
-        protected List<Keyword> call() throws URISyntaxException, IllegalArgumentException, IOException, InterruptedException, NoKeywordsException {
+        protected List<Keyword> call() throws URISyntaxException, IllegalArgumentException, IOException, InterruptedException, KeywordsUtils.NoKeywordsException {
             URI uri = new URI(urlString);
 
             HttpClient httpClient = HttpClient.newBuilder().build();
@@ -88,11 +87,8 @@ public class Controller implements Initializable {
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
             Document document = Jsoup.parse(response.body(), urlString);
-            Set<String> keywords = KeywordsUtils.getKeywordsFromDocument(document);
-            if (keywords.size() == 0) {
-                throw new NoKeywordsException();
-            }
-            return KeywordsUtils.countKeywords(document, keywords);
+
+            return KeywordsUtils.count(document);
         }
 
         @Override
@@ -130,7 +126,7 @@ public class Controller implements Initializable {
                 alert.setHeaderText("downloading page error");
                 alert.setContentText(getException().toString());
                 alert.show();
-            } else if (getException() instanceof NoKeywordsException){
+            } else if (getException() instanceof KeywordsUtils.NoKeywordsException){
                 Alert alert = new Alert(Alert.AlertType.INFORMATION);
                 alert.setTitle("Info");
                 alert.setHeaderText("no keywords on the website");
@@ -144,8 +140,5 @@ public class Controller implements Initializable {
             }
         }
 
-        public static class NoKeywordsException extends Exception{
-
-        }
     }
 }
