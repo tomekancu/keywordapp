@@ -15,14 +15,14 @@
           <children>
               <HBox spacing="10.0">
                   <children>
-                      <TextField fx:id="linkField" HBox.hgrow="ALWAYS" />
+                      <TextField fx:id="urlField" HBox.hgrow="ALWAYS" promptText="URL"/>
                       <Button mnemonicParsing="false" text="Check" onAction="#onCheck"/>
                   </children>
               </HBox>
               <TableView fx:id="tableView" prefHeight="200.0" VBox.vgrow="ALWAYS" >
                   <columns>
-                      <TableColumn prefWidth="75.0" text="Keyword" />
-                      <TableColumn prefWidth="75.0" text="Count" />
+                      <TableColumn fx:id="nameColumn" prefWidth="75.0" text="Keyword" />
+                      <TableColumn fx:id="countColumn" prefWidth="75.0" text="Count" />
                   </columns>
               </TableView>
           </children>
