@@ -4,6 +4,7 @@ import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.SortedList;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
@@ -12,7 +13,6 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.jsoup.select.Elements;
 
 import java.io.IOException;
 import java.net.URI;
@@ -21,8 +21,9 @@ import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.List;
+import java.util.ResourceBundle;
+import java.util.Set;
 
 public class Controller implements Initializable {
 
@@ -61,87 +62,90 @@ public class Controller implements Initializable {
         urlField.setText(urlString);
         System.out.println(urlString);
 
-        URI uri;
-        try {
-            uri = new URI(urlString);
-        } catch (URISyntaxException e) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Error");
-            alert.setHeaderText("URL parse problem");
-            alert.setContentText(e.toString());
-            alert.show();
-            return;
-        }
-
-        HttpClient httpClient = HttpClient.newBuilder().build();
-        HttpRequest request;
-        try {
-            request = HttpRequest.newBuilder()
-                    .uri(uri)
-                    .build();
-        } catch (IllegalArgumentException e) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Error");
-            alert.setHeaderText("bad URL scheme");
-            alert.setContentText(e.toString());
-            alert.show();
-            return;
-        }
-
-        HttpResponse<String> response;
-        try {
-            response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-        } catch (IOException e) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Error");
-            alert.setHeaderText("downloading page error");
-            alert.setContentText(e.toString());
-            alert.show();
-            return;
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Error");
-            alert.setHeaderText("downloading page error");
-            alert.setContentText(e.toString());
-            alert.show();
-            return;
-        }
-
-        Document document = Jsoup.parse(response.body(), urlString);
-
-        Elements meta = document.head().select("meta");
-
-        Set<String> keywords = meta.stream()
-                .filter(e -> "keywords".equals(e.attr("name").toLowerCase().trim()))
-                .map(e -> e.attr("content"))
-                .flatMap(e -> Arrays.stream(e.split(",")))
-                .map(s -> s.trim())
-                .collect(Collectors.toSet());
-
-        String body = document.body().toString();
-
-        List<Keyword> countedKeywords = keywords.stream()
-                .map(key -> new Keyword(key, findWords(body, key).size()))
-                .collect(Collectors.toList());
-
-        keywordsData.setAll(countedKeywords);
+        DownloadPageTask task = new DownloadPageTask(urlString, keywordsData);
+        new Thread(task).start();
     }
 
-    public List<Integer> findWords(String textString, String word) {
-        List<Integer> indexes = new ArrayList<>();
-        String lowerCaseTextString = textString.toLowerCase();
-        String lowerCaseWord = word.toLowerCase();
-        int wordLength = 0;
+    public static class DownloadPageTask extends Task<List<Keyword>> {
 
-        int index = 0;
-        while (index != -1) {
-            index = lowerCaseTextString.indexOf(lowerCaseWord, index + wordLength);
-            if (index != -1) {
-                indexes.add(index);
-            }
-            wordLength = word.length();
+        private final String urlString;
+        private final ObservableList<Keyword> updateList;
+
+        public DownloadPageTask(String urlString, ObservableList<Keyword> updateList) {
+            this.urlString = urlString;
+            this.updateList = updateList;
         }
-        return indexes;
+
+        @Override
+        protected List<Keyword> call() throws URISyntaxException, IllegalArgumentException, IOException, InterruptedException, NoKeywordsException {
+            URI uri = new URI(urlString);
+
+            HttpClient httpClient = HttpClient.newBuilder().build();
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(uri)
+                    .build();
+
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+            Document document = Jsoup.parse(response.body(), urlString);
+            Set<String> keywords = KeywordsUtils.getKeywordsFromDocument(document);
+            if (keywords.size() == 0) {
+                throw new NoKeywordsException();
+            }
+            return KeywordsUtils.countKeywords(document, keywords);
+        }
+
+        @Override
+        protected void succeeded() {
+            super.succeeded();
+            System.out.println("Done");
+            updateList.setAll(getValue());
+        }
+
+        @Override
+        protected void cancelled() {
+            super.cancelled();
+            System.out.println("Canceled");
+        }
+
+        @Override
+        protected void failed() {
+            super.failed();
+            System.out.println("Falied" + getException());
+            if (getException() instanceof URISyntaxException) {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Error");
+                alert.setHeaderText("URL parse problem");
+                alert.setContentText(getException().toString());
+                alert.show();
+            } else if (getException() instanceof IllegalArgumentException) {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Error");
+                alert.setHeaderText("bad URL scheme");
+                alert.setContentText(getException().toString());
+                alert.show();
+            } else if (getException() instanceof IOException || getException() instanceof InterruptedException) {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Error");
+                alert.setHeaderText("downloading page error");
+                alert.setContentText(getException().toString());
+                alert.show();
+            } else if (getException() instanceof NoKeywordsException){
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle("Info");
+                alert.setHeaderText("no keywords on the website");
+                alert.show();
+            } else{
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Error");
+                alert.setHeaderText("undefined error");
+                alert.setContentText(getException().toString());
+                alert.show();
+            }
+        }
+
+        public static class NoKeywordsException extends Exception{
+
+        }
     }
 }
