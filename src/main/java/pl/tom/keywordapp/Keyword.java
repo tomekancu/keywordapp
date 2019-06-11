@@ -39,7 +39,7 @@ public class Keyword {
     }
 
     public IntegerProperty countProperty() {
-        if (count == null) count = new SimpleIntegerProperty(this, "count");
+        if (count == null) count = new SimpleIntegerProperty(this, "countKeywords");
         return count;
     }
 
@@ -47,7 +47,7 @@ public class Keyword {
     public String toString() {
         return "Keyword{" +
                 "name=" + getName() +
-                ", count=" + getCount() +
+                ", countKeywords=" + getCount() +
                 '}';
     }
 

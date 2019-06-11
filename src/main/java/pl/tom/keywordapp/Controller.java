@@ -71,7 +71,7 @@ public class Controller implements Initializable {
         }
 
         @Override
-        protected List<Keyword> call() throws URISyntaxException, IllegalArgumentException, IOException, InterruptedException, KeywordsUtils.NoKeywordsException {
+        protected List<Keyword> call() throws URISyntaxException, IllegalArgumentException, IOException, InterruptedException, KeywordUtils.NoKeywordsException {
             checkButton.disableProperty().setValue(true);
             URI uri = new URI(urlString);
 
@@ -84,7 +84,7 @@ public class Controller implements Initializable {
 
             Document document = Jsoup.parse(response.body(), urlString);
 
-            return KeywordsUtils.count(document);
+            return KeywordUtils.countKeywords(document);
         }
 
         @Override
@@ -122,7 +122,7 @@ public class Controller implements Initializable {
                 alert.setHeaderText("downloading page error");
                 alert.setContentText(getException().toString());
                 alert.show();
-            } else if (getException() instanceof KeywordsUtils.NoKeywordsException){
+            } else if (getException() instanceof KeywordUtils.NoKeywordsException){
                 Alert alert = new Alert(Alert.AlertType.INFORMATION);
                 alert.setTitle("Info");
                 alert.setHeaderText("no keywords on the website");

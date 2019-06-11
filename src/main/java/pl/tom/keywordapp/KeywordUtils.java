@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class KeywordsUtils {
+public class KeywordUtils {
     public static Set<String> getKeywordsFromDocument(Document document) {
         return document.head().select("meta").stream()
                 .filter(e -> "keywords".equals(e.attr("name").toLowerCase().trim()))
@@ -19,20 +19,23 @@ public class KeywordsUtils {
                 .collect(Collectors.toSet());
     }
 
-    public static List<Keyword> count(Document document, Set<String> keywords) {
-        String body = document.body().text();
-
-        return keywords.stream()
-                .map(key -> new Keyword(key, findWordsCaseSensitive(body, key).size()))
-                .collect(Collectors.toList());
-    }
-
-    public static List<Keyword> count(Document document) throws NoKeywordsException {
-        Set<String> keywords = KeywordsUtils.getKeywordsFromDocument(document);
+    public static List<Keyword> countKeywords(Document document) throws NoKeywordsException {
+        Set<String> keywords = KeywordUtils.getKeywordsFromDocument(document);
         if (keywords.size() == 0) {
             throw new NoKeywordsException();
         }
-        return KeywordsUtils.count(document, keywords);
+        return KeywordUtils.countKeywords(document, keywords);
+    }
+
+    public static List<Keyword> countKeywords(Document document, Set<String> keywords) throws NoKeywordsException  {
+        if (keywords.size() == 0) {
+            throw new NoKeywordsException();
+        }
+
+        String body = document.body().text();
+        return keywords.stream()
+                .map(key -> new Keyword(key, findWordsCaseSensitive(body, key).size()))
+                .collect(Collectors.toList());
     }
 
     public static List<Integer> findWordsCaseSensitive(String textString, String word) {

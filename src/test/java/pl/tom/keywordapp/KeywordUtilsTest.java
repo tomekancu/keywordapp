@@ -13,7 +13,7 @@ import java.util.Set;
 import static org.junit.Assert.*;
 
 @RunWith(JUnit4.class)
-public class KeywordsUtilsTest {
+public class KeywordUtilsTest {
 
     // test links
     // https://www.metatags.org/meta_name_keywords
@@ -27,7 +27,7 @@ public class KeywordsUtilsTest {
                 "</head>" +
                 "</html>";
         Document doc = Jsoup.parse(html);
-        Set<String> set = KeywordsUtils.getKeywordsFromDocument(doc);
+        Set<String> set = KeywordUtils.getKeywordsFromDocument(doc);
         Set<String> expected = Set.of("meta", "meta tags", "keyword");
         assertEquals(expected, set);
     }
@@ -39,7 +39,7 @@ public class KeywordsUtilsTest {
                 "</head>" +
                 "</html>";
         Document doc = Jsoup.parse(html);
-        Set<String> set = KeywordsUtils.getKeywordsFromDocument(doc);
+        Set<String> set = KeywordUtils.getKeywordsFromDocument(doc);
         assertTrue(set.isEmpty());
     }
 
@@ -47,18 +47,18 @@ public class KeywordsUtilsTest {
     public void getKeywordsFromDocumentNoParsableHtml() {
         String html = "ml>";
         Document doc = Jsoup.parse(html);
-        Set<String> set = KeywordsUtils.getKeywordsFromDocument(doc);
+        Set<String> set = KeywordUtils.getKeywordsFromDocument(doc);
         assertTrue(set.isEmpty());
     }
 
-    @Test(expected = KeywordsUtils.NoKeywordsException.class)
-    public void countEmpty() throws KeywordsUtils.NoKeywordsException {
+    @Test(expected = KeywordUtils.NoKeywordsException.class)
+    public void countEmpty() throws KeywordUtils.NoKeywordsException {
         String html = "<html>" +
                 "<head>" +
                 "</head>" +
                 "</html>";
         Document doc = Jsoup.parse(html);
-        KeywordsUtils.count(doc);
+        KeywordUtils.countKeywords(doc);
     }
 
     public <T> void assertList(List<T> expected, List<T> list) {
@@ -68,14 +68,14 @@ public class KeywordsUtilsTest {
     }
 
     @Test
-    public void count() throws KeywordsUtils.NoKeywordsException {
+    public void count() throws KeywordUtils.NoKeywordsException {
         String html = "<html>" +
                 "<head>" +
                 "<meta name=\"keywords\" content=\"meta, meta tags, keyword\">" +
                 "</head>" +
                 "</html>";
         Document doc = Jsoup.parse(html);
-        List<Keyword> list = KeywordsUtils.count(doc);
+        List<Keyword> list = KeywordUtils.countKeywords(doc);
         List<Keyword> expected = List.of(new Keyword("meta", 0),
                 new Keyword("meta tags", 0),
                 new Keyword("keyword", 0));
@@ -83,7 +83,7 @@ public class KeywordsUtilsTest {
     }
 
     @Test
-    public void count2() throws KeywordsUtils.NoKeywordsException {
+    public void count2() throws KeywordUtils.NoKeywordsException {
         String html = "<html>" +
                 "<head>" +
                 "<meta name=\"keywords\" content=\"meta, meta tags, keyword\">" +
@@ -92,7 +92,7 @@ public class KeywordsUtilsTest {
                 "<p>ha ha keywords</p>" +
                 "</html>";
         Document doc = Jsoup.parse(html);
-        List<Keyword> list = KeywordsUtils.count(doc);
+        List<Keyword> list = KeywordUtils.countKeywords(doc);
         List<Keyword> expected = List.of(new Keyword("meta", 1),
                 new Keyword("meta tags", 1),
                 new Keyword("keyword", 2));
@@ -101,7 +101,7 @@ public class KeywordsUtilsTest {
 
     @Test
     public void findWords() {
-        List<Integer> result = KeywordsUtils.findWordsCaseSensitive("or and or", "or");
+        List<Integer> result = KeywordUtils.findWordsCaseSensitive("or and or", "or");
 
         List<Integer> expected = List.of(0, 7);
         assertList(expected, result);
@@ -109,12 +109,12 @@ public class KeywordsUtilsTest {
 
     @Test
     public void findWords2() {
-        List<Integer> result = KeywordsUtils.findWordsCaseSensitive("or and or\n" +
+        List<Integer> result = KeywordUtils.findWordsCaseSensitive("or and or\n" +
                 "heLp", "heLp");
         Assert.assertEquals(1, result.size());
 
 
-        result = KeywordsUtils.findWordsCaseSensitive("or and or\n" +
+        result = KeywordUtils.findWordsCaseSensitive("or and or\n" +
                 "heLp", "help");
         Assert.assertEquals(0, result.size());
     }
